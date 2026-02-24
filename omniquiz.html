@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The OmniQuiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tahoma&family=Trebuchet+MS&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --black: #18191a;
+  --deep: #242526;
+  --panel: #3a3b3c;
+  --border: #4e4f50;
+  --blue: #2d88ff;
+  --blue-dim: #1a5fb4;
+  --blue-hover: #4199ff;
+  --pink: #e4405f;
+  --pink-dim: #a02040;
+  --gold: #f5c518;
+  --gold-dim: #b38a00;
+  --purple: #a855f7;
+  --purple-dim: #7e22ce;
+  --text: #e4e6eb;
+  --text-dim: #b0b3b8;
+  --text-muted: #8a8d91;
+  --glow-pink: none;
+  --glow-blue: none;
+  --glow-gold: none;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: Tahoma, 'Trebuchet MS', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* NO STARFIELD - just flat dark gray */
+#starfield { display: none; }
+
+/* NO SCANLINES */
+body::after { display: none; }
+
+/* LAYOUT */
+#app {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 12px 60px;
+}
+
+/* HEADER */
+header {
+  background: #242526;
+  border-bottom: 1px solid #4e4f50;
+  padding: 0;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  gap: 12px;
+}
+.site-title {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  color: #2d88ff;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+
+/* NAV - facebook-style pill tabs */
+nav {
+  display: flex;
+  gap: 2px;
+  margin: 0 0 12px 0;
+  background: #242526;
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid #3a3b3c;
+}
+.nav-btn {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  clip-path: none;
+  flex: 1;
+}
+.nav-btn:hover {
+  background: #3a3b3c;
+  color: var(--text);
+  text-shadow: none;
+  box-shadow: none;
+}
+.nav-btn.active {
+  background: #3a3b3c;
+  color: #2d88ff;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+/* PANELS */
+.panel {
+  background: #242526;
+  border: 1px solid #3a3b3c;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0 0 12px 0;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.panel::before { display: none; }
+
+.panel-title {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--text);
+  text-shadow: none;
+  letter-spacing: 0;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #3a3b3c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-title::after { display: none; }
+
+/* VIEWS */
+.view { display: none; }
+.view.active { display: block; }
+
+/* QUIZ */
+.question-counter {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0;
+  margin-bottom: 8px;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.question-text {
+  font-size: 17px;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 16px;
+  line-height: 1.4;
+  font-style: normal;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.question-type-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #3a3b3c;
+  color: var(--text-dim);
+  border: none;
+  margin-bottom: 12px;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.answers-list { display: flex; flex-direction: column; gap: 6px; }
+.answer-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #3a3b3c;
+  border: 2px solid #3a3b3c;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 14px;
+  transition: border-color 0.1s, background 0.1s;
+  width: 100%;
+}
+.answer-btn:hover {
+  border-color: #2d88ff;
+  background: #3a3b3c;
+}
+.answer-btn.selected {
+  border-color: #2d88ff;
+  background: #1c3c6e;
+  color: #fff;
+}
+.answer-btn.selected .answer-indicator {
+  background: #2d88ff;
+  border-color: #2d88ff;
+  box-shadow: none;
+}
+.answer-indicator {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--text-dim);
+  flex-shrink: 0;
+  background: #18191a;
+  transition: all 0.1s;
+  border-radius: 2px;
+}
+.single .answer-indicator { border-radius: 50%; }
+
+.quiz-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* PROGRESS BAR */
+.progress-bar-wrap {
+  width: 100%;
+  height: 4px;
+  background: #3a3b3c;
+  border-radius: 2px;
+  margin: 10px 0 14px;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: #2d88ff;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  box-shadow: none;
+}
+
+/* BUTTONS */
+.btn {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: filter 0.1s;
+  background: #3a3b3c;
+  color: var(--text);
+}
+.btn:hover { filter: brightness(1.12); }
+.btn-pink {
+  background: #e4405f;
+  color: white;
+  border: none;
+}
+.btn-pink:hover { filter: brightness(1.1); }
+.btn-pink:disabled {
+  background: #4e4f50;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  filter: none;
+}
+.btn-blue {
+  background: #2d88ff;
+  color: white;
+  border: none;
+}
+.btn-blue:hover { filter: brightness(1.1); }
+.btn-gold {
+  background: #f5c518;
+  color: #18191a;
+  border: none;
+  font-weight: bold;
+}
+.btn-gold:hover { filter: brightness(1.08); }
+.btn-dim {
+  background: #3a3b3c;
+  color: var(--text-dim);
+  border: none;
+}
+.btn-dim:hover { background: #4e4f50; color: var(--text); filter: none; }
+.btn-danger {
+  background: #e4405f;
+  color: white;
+  border: none;
+}
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* RESULTS / ARCHETYPE SHEET */
+.archetype-trio {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+@media (max-width: 600px) {
+  .archetype-trio { grid-template-columns: 1fr; }
+}
+.trio-card {
+  padding: 14px;
+  background: #3a3b3c;
+  border-radius: 8px;
+  text-align: center;
+  border: 2px solid #3a3b3c;
+  position: relative;
+}
+.trio-card::before { display: none; }
+.trio-card.primary { border-color: #f5c518; }
+.trio-card.secondary { border-color: #2d88ff; }
+.trio-card.tertiary { border-color: #a855f7; }
+.trio-rank {
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.trio-card.primary .trio-rank { color: #f5c518; }
+.trio-card.secondary .trio-rank { color: #2d88ff; }
+.trio-card.tertiary .trio-rank { color: #a855f7; }
+.trio-name {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1.3;
+  cursor: help;
+  position: relative;
+  color: var(--text);
+  text-shadow: none;
+}
+.trio-card.primary .trio-name { color: #f5c518; }
+.trio-card.secondary .trio-name { color: #2d88ff; }
+.trio-card.tertiary .trio-name { color: #a855f7; }
+.trio-strength {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+/* TOOLTIP */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #18191a;
+  border: 1px solid #4e4f50;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  color: var(--text);
+  width: 200px;
+  text-align: left;
+  z-index: 100;
+  display: none;
+  pointer-events: none;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #4e4f50;
+}
+.tooltip-tags {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tooltip-tag {
+  font-size: 10px;
+  padding: 1px 5px;
+  background: #3a3b3c;
+  border-radius: 3px;
+  color: var(--text-dim);
+  border: none;
+  letter-spacing: 0;
+}
+[data-tooltip]:hover .tooltip { display: block; }
+
+/* TAG SECTIONS */
+.tag-section { margin: 12px 0; }
+.tag-header {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  border-bottom: 1px solid #3a3b3c;
+  padding-bottom: 5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.archetype-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  position: relative;
+}
+.archetype-row-name {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 130px;
+  cursor: help;
+  color: var(--text);
+  position: relative;
+}
+.archetype-row-name:hover .tooltip { display: block; }
+.score-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: #3a3b3c;
+  border-radius: 3px;
+}
+.score-bar {
+  height: 100%;
+  background: #2d88ff;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.score-bar.top { background: #f5c518; box-shadow: none; }
+.score-bar-pct {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: right;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.strength-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  letter-spacing: 0;
+  min-width: 65px;
+  text-align: center;
+  font-family: Tahoma, Arial, sans-serif;
+  font-weight: bold;
+  border: none;
+}
+.strength-high { background: rgba(245,197,24,0.2); color: #f5c518; }
+.strength-mid { background: rgba(45,136,255,0.2); color: #2d88ff; }
+.strength-low { background: #3a3b3c; color: var(--text-muted); }
+
+/* FORMS */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0;
+  color: var(--text-dim);
+  text-transform: none;
+  margin-bottom: 5px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: #3a3b3c;
+  border: 1px solid #4e4f50;
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: #2d88ff;
+  box-shadow: 0 0 0 2px rgba(45,136,255,0.25);
+}
+.form-select { cursor: pointer; }
+.form-select option { background: #242526; }
+.form-textarea { resize: vertical; min-height: 72px; }
+.form-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-style: normal;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+/* ANSWERS BUILDER */
+.answer-builder {
+  border: 1px solid #4e4f50;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #18191a;
+}
+.answer-builder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.answer-num {
+  font-size: 11px;
+  font-weight: bold;
+  color: #2d88ff;
+  letter-spacing: 0;
+  font-family: Tahoma, Arial, sans-serif;
+  text-transform: uppercase;
+}
+.effect-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.effect-row .form-select { font-size: 12px; padding: 5px 7px; }
+.points-input {
+  width: 52px;
+  background: #3a3b3c;
+  border: 1px solid #4e4f50;
+  border-radius: 4px;
+  color: var(--text);
+  padding: 5px 7px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  text-align: center;
+}
+.points-input:focus { outline: none; border-color: #2d88ff; }
+
+/* BROWSE */
+.browse-item {
+  padding: 12px 14px;
+  background: #3a3b3c;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  transition: background 0.1s;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid transparent;
+}
+.browse-item:hover { background: #4e4f50; border-color: transparent; }
+.browse-item-name {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.browse-item-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: normal;
+}
+.browse-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.browse-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  background: #242526;
+  border-radius: 10px;
+  color: var(--text-muted);
+  border: none;
+  letter-spacing: 0;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.browse-question-text {
+  font-style: normal;
+  font-weight: bold;
+  color: var(--text);
+  font-size: 13px;
+  margin-bottom: 3px;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.browse-question-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.browse-actions { display: flex; gap: 5px; flex-shrink: 0; }
+
+/* SEARCH */
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-input {
+  width: 100%;
+  background: #3a3b3c;
+  border: 1px solid #4e4f50;
+  border-radius: 20px;
+  color: var(--text);
+  padding: 8px 14px 8px 34px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+}
+.search-input:focus { outline: none; border-color: #2d88ff; }
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ADMIN */
+.admin-gate { text-align: center; padding: 32px 16px; }
+.admin-gate-title {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.hidden-item { opacity: 0.45; }
+.hidden-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(228,64,95,0.2);
+  color: #e4405f;
+  font-family: Tahoma, Arial, sans-serif;
+  font-weight: bold;
+  border: none;
+  letter-spacing: 0;
+}
+
+/* LOADING */
+.loading {
+  text-align: center;
+  padding: 32px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+.loading::after {
+  content: '';
+  display: inline-block;
+  animation: dots 1.2s steps(3, end) infinite;
+}
+@keyframes dots {
+  0%   { content: ''; }
+  33%  { content: '.'; }
+  66%  { content: '..'; }
+  100% { content: '...'; }
+}
+
+/* EMPTY */
+.empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+}
+.empty-icon { font-size: 1.8rem; margin-bottom: 8px; }
+
+/* TOAST */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #3a3b3c;
+  border: 1px solid #4e4f50;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.25s ease;
+  max-width: 280px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { border-left: 3px solid #2d88ff; }
+#toast.error { border-left: 3px solid #e4405f; }
+
+/* DIVIDER */
+.divider {
+  border: none;
+  border-top: 1px solid #3a3b3c;
+  margin: 14px 0;
+}
+
+/* STAT GRID */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+.stat-box {
+  background: #3a3b3c;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-num {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 22px;
+  font-weight: bold;
+  color: #2d88ff;
+  line-height: 1;
+}
+.stat-label {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #242526;
+  border: 1px solid #3a3b3c;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+.modal::before { display: none; }
+.modal-close {
+  position: absolute;
+  top: 12px; right: 14px;
+  background: #3a3b3c;
+  border: none;
+  border-radius: 50%;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: #4e4f50; color: var(--text); }
+
+/* EXPORT */
+.export-box {
+  background: #18191a;
+  border: 1px solid #3a3b3c;
+  border-radius: 6px;
+  padding: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  word-break: break-all;
+  max-height: 100px;
+  overflow-y: auto;
+  margin: 8px 0;
+}
+
+/* TABS */
+.tabs { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 1px solid #3a3b3c; }
+.tab {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s;
+  margin-bottom: -1px;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: #2d88ff; border-bottom-color: #2d88ff; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #18191a; }
+::-webkit-scrollbar-thumb { background: #4e4f50; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6a6b6c; }
+
+.fade-in {
+  animation: fadeIn 0.2s ease forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.glow-pink { color: #e4405f; text-shadow: none; }
+.glow-blue { color: #2d88ff; text-shadow: none; }
+.glow-gold { color: #f5c518; text-shadow: none; }
+.mono { font-family: Tahoma, Arial, sans-serif; font-size: 11px; color: var(--text-muted); }
+
+/* That classic facebook-style box shadow on cards */
+.panel, .browse-item, .stat-box, .trio-card {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield" style="display:none"></canvas>
+
+<header>
+  <div class="header-inner">
+    <div class="site-title">OmniQuiz</div>
+  </div>
+</header>
+
+
+<div id="app">
+  <nav>
+    <button class="nav-btn active" onclick="showView('quiz')">Take Quiz</button>
+    <button class="nav-btn" onclick="showView('results')">My Results</button>
+    <button class="nav-btn" onclick="showView('archetypes')">Archetypes</button>
+    <button class="nav-btn" onclick="showView('questions')">Questions</button>
+    <button class="nav-btn" onclick="showView('admin')">Admin</button>
+  </nav>
+
+  <!-- QUIZ VIEW -->
+  <div id="view-quiz" class="view active">
+    <div id="quiz-content">
+      <div class="loading">LOADING QUESTIONS...</div>
+    </div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div id="view-results" class="view">
+    <div id="results-content">
+      <div class="loading">CALCULATING YOUR ESSENCE...</div>
+    </div>
+  </div>
+
+  <!-- ARCHETYPES VIEW -->
+  <div id="view-archetypes" class="view">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('archetypes', 'browse')">Browse</button>
+      <button class="tab" onclick="switchTab('archetypes', 'add')">+ Add New</button>
+    </div>
+    <div id="archetypes-browse-tab">
+      <div class="search-wrap">
+        <span class="search-icon">⚲</span>
+        <input type="text" class="search-input" id="archetype-search" placeholder="Search archetypes or tags..." oninput="filterArchetypes()">
+      </div>
+      <div id="archetypes-list"><div class="loading">LOADING...</div></div>
+    </div>
+    <div id="archetypes-add-tab" style="display:none">
+      <div class="panel">
+        <div class="panel-title">Create New Archetype</div>
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-input" id="new-arch-name" placeholder="e.g. Gryffindor">
+          <div class="form-hint">Auto-normalized to UPPERCASE</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="new-arch-desc" placeholder="What does this archetype represent?"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <input type="text" class="form-input" id="new-arch-tags" placeholder="POTTERMORE, WIZARDING (comma separated)">
+          <div class="form-hint">Tags categorize archetypes into universes. All caps, comma separated.</div>
+        </div>
+        <button class="btn btn-pink" onclick="submitArchetype()">Create Archetype</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS VIEW -->
+  <div id="view-questions" class="view">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('questions', 'browse')">Browse</button>
+      <button class="tab" onclick="switchTab('questions', 'add')">+ Add New</button>
+    </div>
+    <div id="questions-browse-tab">
+      <div class="search-wrap">
+        <span class="search-icon">⚲</span>
+        <input type="text" class="search-input" id="question-search" placeholder="Search questions..." oninput="filterQuestions()">
+      </div>
+      <div id="questions-list"><div class="loading">LOADING...</div></div>
+    </div>
+    <div id="questions-add-tab" style="display:none">
+      <div class="panel">
+        <div class="panel-title">Create New Question</div>
+        <div class="form-group">
+          <label class="form-label">Question Text</label>
+          <input type="text" class="form-input" id="new-q-text" placeholder="e.g. You find a wounded enemy soldier...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Answer Type</label>
+          <select class="form-select" id="new-q-type">
+            <option value="single">Single Choice</option>
+            <option value="multi">Multi Choice</option>
+          </select>
+        </div>
+        <div class="panel-title" style="margin-top:20px">Answers</div>
+        <div id="answers-builder"></div>
+        <button class="btn btn-dim btn-sm" onclick="addAnswerBuilder()" style="margin-bottom:16px">+ Add Answer</button>
+        <hr class="divider">
+        <button class="btn btn-pink" onclick="submitQuestion()">Create Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="view-admin" class="view">
+    <div id="admin-gate" class="panel">
+      <div class="admin-gate-title">Admin Login</div>
+      <p style="color:var(--text-dim); text-align:center; margin-bottom:20px; font-style:italic">Enter the admin password to manage content.</p>
+      <div style="max-width:300px; margin:0 auto">
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="admin-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkAdmin()">
+        </div>
+        <button class="btn btn-pink" onclick="checkAdmin()" style="width:100%">ENTER</button>
+      </div>
+    </div>
+    <div id="admin-panel" style="display:none">
+      <div class="panel">
+        <div class="panel-title">Admin Console</div>
+        <div class="stat-grid" id="admin-stats"></div>
+        <hr class="divider">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('admin', 'archetypes')">Archetypes</button>
+          <button class="tab" onclick="switchTab('admin', 'questions')">Questions</button>
+          <button class="tab" onclick="switchTab('admin', 'data')">Data Tools</button>
+        </div>
+        <div id="admin-archetypes-tab">
+          <div id="admin-archetypes-list"><div class="loading">LOADING...</div></div>
+        </div>
+        <div id="admin-questions-tab" style="display:none">
+          <div id="admin-questions-list"><div class="loading">LOADING...</div></div>
+        </div>
+        <div id="admin-data-tab" style="display:none">
+          <p style="color:var(--text-dim); margin-bottom:16px; font-style:italic">Export your quiz state or import a saved one.</p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <button class="btn btn-blue" onclick="exportState()">⬇ Export My Answers</button>
+            <button class="btn btn-dim" onclick="document.getElementById('import-file').click()">⬆ Import Answers</button>
+            <button class="btn btn-danger btn-sm" onclick="if(confirm('Reset ALL your answers? This cannot be undone.')) resetState()">✕ Reset My Progress</button>
+          </div>
+          <input type="file" id="import-file" accept=".json,.txt" style="display:none" onchange="importState(event)">
+          <div id="export-output" style="display:none; margin-top:12px">
+            <div class="form-label">Your exported state:</div>
+            <div class="export-box" id="export-text"></div>
+            <button class="btn btn-dim btn-sm" onclick="copyExport()">Copy to Clipboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ANSWER EXPAND MODAL -->
+<div class="modal-overlay" id="question-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('question-modal')">✕</button>
+    <div id="question-modal-content"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const SUPABASE_URL = 'https://qpgrrhtcwekicfkqhwip.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_RjhhtbgtKrKwlGqAnyodYA_kFsLrEQV';
+const ADMIN_PASSWORD = 'omniquiz_admin_2025'; // CHANGE THIS
+const STATE_KEY = 'omniquiz_user_state_v1';
+
+// ============================================================
+// SUPABASE CLIENT
+// ============================================================
+const sb = {
+  async query(table, params = {}) {
+    let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+    const p = new URLSearchParams({ apikey: SUPABASE_KEY, ...params });
+    url += p.toString();
+    const r = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      }
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async insert(table, data) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async update(table, id, data) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async rpc(fn, params = {}) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(params)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let userState = { answered_questions: {} };
+let cache = { archetypes: [], questions: [], answers: [], effects: [] };
+let adminUnlocked = false;
+let currentQuizQuestion = null;
+let currentQuizAnswers = [];
+let answerBuilderCount = 0;
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(STATE_KEY);
+    if (s) userState = JSON.parse(s);
+  } catch(e) {}
+}
+function saveState() {
+  localStorage.setItem(STATE_KEY, JSON.stringify(userState));
+}
+function resetState() {
+  userState = { answered_questions: {} };
+  saveState();
+  toast('Progress reset.', 'success');
+  loadQuizQuestion();
+}
+
+// ============================================================
+// DATA LOADING
+// ============================================================
+async function loadAll() {
+  try {
+    const [archetypes, questions, answers, effects] = await Promise.all([
+      sb.query('archetypes', { select: '*', order: 'name.asc' }),
+      sb.query('questions', { select: '*', order: 'created_at.asc' }),
+      sb.query('answers', { select: '*', order: 'created_at.asc' }),
+      sb.query('effects', { select: '*' })
+    ]);
+    cache.archetypes = archetypes;
+    cache.questions = questions;
+    cache.answers = answers;
+    cache.effects = effects;
+  } catch(e) {
+    console.error('Load error:', e);
+    toast('Failed to load data. Check connection.', 'error');
+  }
+}
+
+async function loadAllAdmin() {
+  try {
+    const [archetypes, questions, answers, effects] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/archetypes?select=*&order=name.asc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      }).then(r => r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/questions?select=*&order=created_at.asc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      }).then(r => r.json()),
+      sb.query('answers', { select: '*' }),
+      sb.query('effects', { select: '*' })
+    ]);
+    cache.archetypes = archetypes;
+    cache.questions = questions;
+    cache.answers = answers;
+    cache.effects = effects;
+  } catch(e) {
+    console.error('Admin load error:', e);
+  }
+}
+
+// ============================================================
+// STARFIELD
+// ============================================================
+function initStarfield() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const stars = [];
+  const colors = ['#ff2d78', '#00d4ff', '#ffd700', '#b44fff', '#ffffff'];
+
+  for (let i = 0; i < 200; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speed: Math.random() * 0.5 + 0.1,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const t = Date.now() / 1000;
+    stars.forEach(s => {
+      const opacity = (Math.sin(t * s.speed + s.phase) + 1) / 2 * 0.8 + 0.1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.color + Math.floor(opacity * 255).toString(16).padStart(2, '0');
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+}
+
+// ============================================================
+// VIEWS
+// ============================================================
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`view-${name}`).classList.add('active');
+  event.target.classList.add('active');
+
+  if (name === 'quiz') loadQuizQuestion();
+  if (name === 'results') renderResults();
+  if (name === 'archetypes') renderArchetypesBrowse();
+  if (name === 'questions') renderQuestionsBrowse();
+  if (name === 'admin' && adminUnlocked) renderAdminContent();
+}
+
+function switchTab(section, tab) {
+  const tabs = document.querySelectorAll(`#view-${section} .tab, #admin-panel .tab`);
+  // find correct tab group
+  event.target.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const prefix = section === 'admin' ? 'admin' : section;
+  const allTabs = ['browse', 'add', 'archetypes', 'questions', 'data'];
+  allTabs.forEach(t => {
+    const el = document.getElementById(`${prefix}-${t}-tab`);
+    if (el) el.style.display = 'none';
+  });
+  const target = document.getElementById(`${prefix}-${tab}-tab`);
+  if (target) target.style.display = 'block';
+
+  if (section === 'questions' && tab === 'add') initAnswerBuilder();
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+function getUnansweredQuestions() {
+  const answered = new Set(Object.keys(userState.answered_questions));
+  return cache.questions.filter(q => !answered.has(q.id));
+}
+
+function loadQuizQuestion() {
+  const container = document.getElementById('quiz-content');
+  const unanswered = getUnansweredQuestions();
+
+  if (cache.questions.length === 0) {
+    container.innerHTML = `<div class="panel"><div class="empty"><div class="empty-icon">⚠</div>No questions loaded yet. Add some in the Questions tab!</div></div>`;
+    return;
+  }
+
+  if (unanswered.length === 0) {
+    const total = Object.keys(userState.answered_questions).length;
+    container.innerHTML = `
+      <div class="panel fade-in">
+        <div class="panel-title">Quiz Complete! 🎉</div>
+        <div class="empty">
+          <div class="empty-icon">✦</div>
+          <p style="color:var(--text); font-size:1.1rem; margin-bottom:8px">You have answered all <strong class="glow-pink">${total}</strong> questions.</p>
+          <p style="color:var(--text-dim); margin-bottom:20px; font-style:italic">New questions may be added by the community. Check back soon.</p>
+          <button class="btn btn-gold" onclick="showViewByName('results')">See My Results</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Pick random unanswered question
+  const q = unanswered[Math.floor(Math.random() * unanswered.length)];
+  currentQuizQuestion = q;
+  currentQuizAnswers = [];
+
+  const qAnswers = cache.answers.filter(a => a.question_id === q.id);
+  const total = cache.questions.length;
+  const done = Object.keys(userState.answered_questions).length;
+  const pct = Math.round((done / total) * 100);
+
+  container.innerHTML = `
+    <div class="panel fade-in">
+      <div class="question-counter mono">QUESTION ${done + 1} OF ${total} &nbsp;|&nbsp; ${unanswered.length} REMAINING</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+      <div class="question-type-badge">${q.type === 'multi' ? '⬡ SELECT ALL THAT APPLY' : '◉ CHOOSE ONE'}</div>
+      <div class="question-text">${escHtml(q.text)}</div>
+      <div class="answers-list ${q.type}" id="quiz-answers">
+        ${qAnswers.map(a => `
+          <button class="answer-btn" data-id="${a.id}" onclick="toggleAnswer('${a.id}', '${q.type}')">
+            <div class="answer-indicator"></div>
+            <span>${escHtml(a.text)}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="quiz-actions">
+        <button class="btn btn-pink" id="submit-btn" onclick="submitAnswer()" disabled>Submit Answer</button>
+        <button class="btn btn-dim" onclick="skipQuestion()">Skip →</button>
+        <button class="btn btn-gold btn-sm" onclick="showViewByName('results')" style="margin-left:auto">See Results</button>
+      </div>
+    </div>`;
+}
+
+function toggleAnswer(answerId, type) {
+  if (type === 'single') {
+    currentQuizAnswers = [answerId];
+    document.querySelectorAll('#quiz-answers .answer-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`[data-id="${answerId}"]`).classList.add('selected');
+  } else {
+    const idx = currentQuizAnswers.indexOf(answerId);
+    if (idx === -1) {
+      currentQuizAnswers.push(answerId);
+      document.querySelector(`[data-id="${answerId}"]`).classList.add('selected');
+    } else {
+      currentQuizAnswers.splice(idx, 1);
+      document.querySelector(`[data-id="${answerId}"]`).classList.remove('selected');
+    }
+  }
+  document.getElementById('submit-btn').disabled = currentQuizAnswers.length === 0;
+}
+
+function submitAnswer() {
+  if (!currentQuizQuestion || currentQuizAnswers.length === 0) return;
+  userState.answered_questions[currentQuizQuestion.id] = {
+    selected_answer_ids: [...currentQuizAnswers]
+  };
+  saveState();
+  loadQuizQuestion();
+}
+
+function skipQuestion() {
+  loadQuizQuestion();
+}
+
+function showViewByName(name) {
+  document.querySelectorAll('.nav-btn').forEach((b, i) => {
+    const views = ['quiz', 'results', 'archetypes', 'questions', 'admin'];
+    if (views[i] === name) b.click();
+  });
+}
+
+// ============================================================
+// SCORE CALCULATION
+// ============================================================
+function calculateScores() {
+  const scores = {};
+  cache.archetypes.forEach(a => { scores[a.id] = 0; });
+
+  for (const [qId, qState] of Object.entries(userState.answered_questions)) {
+    for (const answerId of qState.selected_answer_ids) {
+      const effects = cache.effects.filter(e => e.answer_id === answerId);
+      for (const effect of effects) {
+        if (scores[effect.archetype_id] !== undefined) {
+          scores[effect.archetype_id] += effect.points;
+        }
+      }
+    }
+  }
+  return scores;
+}
+
+function getStrength(score, allScores) {
+  const values = Object.values(allScores).filter(v => v > 0);
+  if (values.length < 2) return score > 0 ? 1 : 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+  const std = Math.sqrt(variance) || 1;
+  return (score - mean) / std; // z-score
+}
+
+function strengthLabel(z) {
+  if (z >= 1.5) return { label: 'LEGENDARY', cls: 'strength-high' };
+  if (z >= 0.5) return { label: 'STRONG', cls: 'strength-high' };
+  if (z >= -0.5) return { label: 'MODERATE', cls: 'strength-mid' };
+  return { label: 'FAINT', cls: 'strength-low' };
+}
+
+// ============================================================
+// RESULTS
+// ============================================================
+function renderResults() {
+  const container = document.getElementById('results-content');
+  const answeredCount = Object.keys(userState.answered_questions).length;
+
+  if (answeredCount === 0) {
+    container.innerHTML = `
+      <div class="panel">
+        <div class="empty">
+          <div class="empty-icon">✦</div>
+          <p style="color:var(--text-dim); margin-bottom:16px">You haven't answered any questions yet.</p>
+          <button class="btn btn-pink" onclick="showViewByName('quiz')">⚔ Take the Quiz</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const scores = calculateScores();
+  const positiveScores = Object.entries(scores).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const totalPositive = positiveScores.reduce((sum, [, v]) => sum + v, 0) || 1;
+
+  // Top 3
+  const top3 = positiveScores.slice(0, 3);
+  const ranks = ['primary', 'secondary', 'tertiary'];
+  const rankLabels = ['PRIMARY', 'SECONDARY', 'TERTIARY'];
+  const archetypeMap = Object.fromEntries(cache.archetypes.map(a => [a.id, a]));
+
+  let trioHtml = '<div class="archetype-trio">';
+  top3.forEach(([id, score], i) => {
+    const arch = archetypeMap[id];
+    if (!arch) return;
+    const z = getStrength(score, scores);
+    const { label } = strengthLabel(z);
+    trioHtml += `
+      <div class="trio-card ${ranks[i]}">
+        <div class="trio-rank">✦ ${rankLabels[i]}</div>
+        <div class="trio-name" data-tooltip="1">
+          ${escHtml(arch.name)}
+          <div class="tooltip">
+            <strong>${escHtml(arch.name)}</strong><br>
+            <span style="color:var(--text-dim)">${escHtml(arch.description)}</span>
+            <div class="tooltip-tags">${arch.tags.map(t => `<span class="tooltip-tag">${escHtml(t)}</span>`).join('')}</div>
+          </div>
+        </div>
+        <div class="trio-strength mono">${label} · ${Math.round((score/totalPositive)*100)}%</div>
+      </div>`;
+  });
+  trioHtml += '</div>';
+
+  // Tag breakdowns
+  const allTags = [...new Set(cache.archetypes.flatMap(a => a.tags))].sort();
+  let tagHtml = '';
+
+  for (const tag of allTags) {
+    const tagArchetypes = cache.archetypes.filter(a => a.tags.includes(tag));
+    const tagScores = tagArchetypes.map(a => ({ arch: a, score: scores[a.id] || 0 }));
+    const hasActivity = tagScores.some(t => t.score > 0);
+    if (!hasActivity) continue;
+
+    const tagPositive = tagScores.filter(t => t.score > 0).reduce((s, t) => s + t.score, 0) || 1;
+    const tagScoreMap = Object.fromEntries(tagScores.map(t => [t.arch.id, t.score]));
+    const sorted = tagScores.filter(t => t.score > 0).sort((a, b) => b.score - a.score);
+
+    tagHtml += `<div class="tag-section">
+      <div class="tag-header">⬡ ${escHtml(tag)} <span style="color:var(--text-dim); font-size:0.6rem">(${sorted.length} active)</span></div>`;
+
+    sorted.forEach((t, idx) => {
+      const pct = Math.round((t.score / tagPositive) * 100);
+      const z = getStrength(t.score, tagScoreMap);
+      const { label: sLabel, cls } = strengthLabel(z);
+      tagHtml += `
+        <div class="archetype-row">
+          <div class="archetype-row-name" data-tooltip="1">
+            ${escHtml(t.arch.name)}
+            <div class="tooltip" style="bottom:calc(100% + 8px); left:0; transform:none">
+              <strong>${escHtml(t.arch.name)}</strong><br>
+              <span style="color:var(--text-dim)">${escHtml(t.arch.description)}</span>
+              <div class="tooltip-tags">${t.arch.tags.map(tg => `<span class="tooltip-tag">${escHtml(tg)}</span>`).join('')}</div>
+            </div>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar ${idx === 0 ? 'top' : ''}" style="width:${pct}%"></div>
+          </div>
+          <div class="score-bar-pct mono">${pct}%</div>
+          <div class="strength-badge ${cls}">${sLabel}</div>
+        </div>`;
+    });
+    tagHtml += '</div>';
+  }
+
+  container.innerHTML = `
+    <div class="panel fade-in">
+      <div class="panel-title">Your Results 📊</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num">${answeredCount}</div><div class="stat-label">Answered</div></div>
+        <div class="stat-box"><div class="stat-num">${cache.questions.length - answeredCount}</div><div class="stat-label">Remaining</div></div>
+        <div class="stat-box"><div class="stat-num">${positiveScores.length}</div><div class="stat-label">Active Archetypes</div></div>
+        <div class="stat-box"><div class="stat-num">${totalPositive}</div><div class="stat-label">Total Points</div></div>
+      </div>
+      ${trioHtml}
+      <hr class="divider">
+      <div style="font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-dim); letter-spacing:0.1em; margin-bottom:16px">BY UNIVERSE</div>
+      ${tagHtml || '<div class="empty">No universe data yet. Answer more questions!</div>'}
+    </div>`;
+}
+
+// ============================================================
+// ARCHETYPES BROWSE
+// ============================================================
+function renderArchetypesBrowse() {
+  const list = document.getElementById('archetypes-list');
+  const archetypes = cache.archetypes.filter(a => !a.is_hidden);
+  if (archetypes.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📖</div>No archetypes yet. Be the first to add one!</div>`;
+    return;
+  }
+  renderArchetypeList(archetypes, list);
+}
+
+function renderArchetypeList(archetypes, container) {
+  container.innerHTML = archetypes.map(a => `
+    <div class="browse-item ${a.is_hidden ? 'hidden-item' : ''} fade-in">
+      <div style="flex:1">
+        <div class="browse-item-name">${escHtml(a.name)} ${a.is_hidden ? '<span class="hidden-badge">HIDDEN</span>' : ''}</div>
+        <div class="browse-item-desc">${escHtml(a.description)}</div>
+        <div class="browse-tags">${a.tags.map(t => `<span class="browse-tag">${escHtml(t)}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filterArchetypes() {
+  const q = document.getElementById('archetype-search').value.toLowerCase();
+  const filtered = cache.archetypes.filter(a =>
+    !a.is_hidden && (
+      a.name.toLowerCase().includes(q) ||
+      a.description.toLowerCase().includes(q) ||
+      a.tags.some(t => t.toLowerCase().includes(q))
+    )
+  );
+  renderArchetypeList(filtered, document.getElementById('archetypes-list'));
+}
+
+// ============================================================
+// QUESTIONS BROWSE
+// ============================================================
+function renderQuestionsBrowse() {
+  const list = document.getElementById('questions-list');
+  const questions = cache.questions.filter(q => !q.is_hidden);
+  if (questions.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">❓</div>No questions yet. Add the first one!</div>`;
+    return;
+  }
+  renderQuestionList(questions, list);
+}
+
+function renderQuestionList(questions, container) {
+  container.innerHTML = questions.map(q => {
+    const answers = cache.answers.filter(a => a.question_id === q.id);
+    return `
+      <div class="browse-item ${q.is_hidden ? 'hidden-item' : ''} fade-in">
+        <div style="flex:1">
+          <div class="browse-question-text">"${escHtml(q.text)}"</div>
+          <div class="browse-question-meta">${q.type.toUpperCase()} · ${answers.length} ANSWERS · ${new Date(q.created_at).toLocaleDateString()}</div>
+        </div>
+        <div class="browse-actions">
+          <button class="btn btn-dim btn-sm" onclick="viewQuestion('${q.id}')">View</button>
+          ${q.is_hidden ? '<span class="hidden-badge">HIDDEN</span>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function filterQuestions() {
+  const q = document.getElementById('question-search').value.toLowerCase();
+  const filtered = cache.questions.filter(qq =>
+    !qq.is_hidden && qq.text.toLowerCase().includes(q)
+  );
+  renderQuestionList(filtered, document.getElementById('questions-list'));
+}
+
+function viewQuestion(id) {
+  const q = cache.questions.find(qq => qq.id === id);
+  if (!q) return;
+  const answers = cache.answers.filter(a => a.question_id === id);
+  const archetypeMap = Object.fromEntries(cache.archetypes.map(a => [a.id, a]));
+
+  document.getElementById('question-modal-content').innerHTML = `
+    <div class="panel-title" style="margin-bottom:12px">Question Details</div>
+    <div class="question-type-badge">${q.type.toUpperCase()}</div>
+    <div class="question-text" style="margin-bottom:20px">"${escHtml(q.text)}"</div>
+    ${answers.map(a => {
+      const effects = cache.effects.filter(e => e.answer_id === a.id);
+      return `
+        <div style="border:1px solid var(--border); padding:12px; margin-bottom:8px">
+          <div style="color:var(--text); margin-bottom:8px">${escHtml(a.text)}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px">
+            ${effects.map(e => {
+              const arch = archetypeMap[e.archetype_id];
+              if (!arch) return '';
+              const color = e.points > 0 ? 'var(--blue)' : e.points < 0 ? 'var(--pink)' : 'var(--text-dim)';
+              return `<span style="font-family:'Share Tech Mono',monospace; font-size:0.6rem; padding:2px 8px; border:1px solid ${color}; color:${color}">
+                ${e.points > 0 ? '+' : ''}${e.points} ${escHtml(arch.name)}
+              </span>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }).join('')}`;
+  openModal('question-modal');
+}
+
+// ============================================================
+// ANSWER BUILDER
+// ============================================================
+function initAnswerBuilder() {
+  answerBuilderCount = 0;
+  document.getElementById('answers-builder').innerHTML = '';
+  addAnswerBuilder();
+  addAnswerBuilder();
+}
+
+function addAnswerBuilder() {
+  answerBuilderCount++;
+  const n = answerBuilderCount;
+  const archetypeOptions = cache.archetypes
+    .filter(a => !a.is_hidden)
+    .map(a => `<option value="${a.id}">${escHtml(a.name)}</option>`)
+    .join('');
+
+  const div = document.createElement('div');
+  div.className = 'answer-builder';
+  div.id = `answer-builder-${n}`;
+  div.innerHTML = `
+    <div class="answer-builder-header">
+      <span class="answer-num">ANSWER ${n}</span>
+      ${n > 2 ? `<button class="btn btn-danger btn-sm" onclick="this.closest('.answer-builder').remove()">✕ Remove</button>` : ''}
+    </div>
+    <div class="form-group">
+      <label class="form-label">Answer Text</label>
+      <input type="text" class="form-input" id="answer-text-${n}" placeholder="What the user sees...">
+    </div>
+    <div class="form-label" style="margin-bottom:8px">Archetype Effects <span style="color:var(--text-dim); font-weight:normal">(optional)</span></div>
+    <div id="effects-${n}"></div>
+    <button class="btn btn-dim btn-sm" onclick="addEffect(${n})">+ Add Effect</button>
+    <div class="form-hint" style="margin-top:6px">Effects link this answer to archetypes with +2 to -2 point modifiers.</div>`;
+
+  document.getElementById('answers-builder').appendChild(div);
+}
+
+function addEffect(answerNum) {
+  const archetypeOptions = cache.archetypes
+    .filter(a => !a.is_hidden)
+    .map(a => `<option value="${a.id}">${escHtml(a.name)}</option>`)
+    .join('');
+
+  const row = document.createElement('div');
+  row.className = 'effect-row';
+  row.innerHTML = `
+    <select class="form-select" style="font-size:0.85rem; padding:6px 8px">
+      <option value="">— Select Archetype —</option>
+      ${archetypeOptions}
+    </select>
+    <input type="number" class="points-input" min="-2" max="2" value="1" title="Points (-2 to +2)">
+    <button class="btn btn-danger btn-sm" onclick="this.closest('.effect-row').remove()">✕</button>`;
+
+  document.getElementById(`effects-${answerNum}`).appendChild(row);
+}
+
+// ============================================================
+// SUBMIT ARCHETYPE
+// ============================================================
+async function submitArchetype() {
+  const name = document.getElementById('new-arch-name').value.trim().toUpperCase();
+  const desc = document.getElementById('new-arch-desc').value.trim();
+  const tagsRaw = document.getElementById('new-arch-tags').value;
+  const tags = tagsRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
+
+  if (!name) { toast('Name is required.', 'error'); return; }
+  if (!desc) { toast('Description is required.', 'error'); return; }
+  if (cache.archetypes.some(a => a.name === name)) { toast(`"${name}" already exists.`, 'error'); return; }
+
+  try {
+    const result = await sb.insert('archetypes', { name, description: desc, tags, is_hidden: false });
+    cache.archetypes.push(result[0]);
+    cache.archetypes.sort((a, b) => a.name.localeCompare(b.name));
+    document.getElementById('new-arch-name').value = '';
+    document.getElementById('new-arch-desc').value = '';
+    document.getElementById('new-arch-tags').value = '';
+    toast(`✦ ${name} created!`, 'success');
+  } catch(e) {
+    toast('Error creating archetype.', 'error');
+    console.error(e);
+  }
+}
+
+// ============================================================
+// SUBMIT QUESTION
+// ============================================================
+async function submitQuestion() {
+  const text = document.getElementById('new-q-text').value.trim();
+  const type = document.getElementById('new-q-type').value;
+
+  if (!text) { toast('Question text is required.', 'error'); return; }
+
+  const builders = document.querySelectorAll('.answer-builder');
+  const answersData = [];
+  let valid = true;
+
+  builders.forEach((b, i) => {
+    const n = b.id.replace('answer-builder-', '');
+    const answerText = document.getElementById(`answer-text-${n}`)?.value.trim();
+    if (!answerText) { toast(`Answer ${i+1} needs text.`, 'error'); valid = false; return; }
+
+    const effects = [];
+    const effectRows = b.querySelectorAll('.effect-row');
+    const seenArchetypes = new Set();
+
+    effectRows.forEach(row => {
+      const sel = row.querySelector('select');
+      const pts = row.querySelector('.points-input');
+      if (!sel.value) return;
+      if (seenArchetypes.has(sel.value)) { toast('Duplicate archetype in one answer.', 'error'); valid = false; return; }
+      const pts_val = parseInt(pts.value);
+      if (pts_val < -2 || pts_val > 2) { toast('Points must be -2 to +2.', 'error'); valid = false; return; }
+      seenArchetypes.add(sel.value);
+      effects.push({ archetype_id: sel.value, points: pts_val });
+    });
+
+    answersData.push({ text: answerText, effects });
+  });
+
+  if (!valid || answersData.length < 2) {
+    if (answersData.length < 2) toast('Need at least 2 answers.', 'error');
+    return;
+  }
+
+  try {
+    const [qResult] = await sb.insert('questions', { text, type, is_hidden: false });
+    const qId = qResult.id;
+
+    for (const ad of answersData) {
+      const [aResult] = await sb.insert('answers', { question_id: qId, text: ad.text });
+      const aId = aResult.id;
+      for (const ef of ad.effects) {
+        await sb.insert('effects', { answer_id: aId, archetype_id: ef.archetype_id, points: ef.points });
+        cache.effects.push({ answer_id: aId, archetype_id: ef.archetype_id, points: ef.points });
+      }
+      cache.answers.push({ id: aId, question_id: qId, text: ad.text });
+    }
+
+    cache.questions.push(qResult);
+    document.getElementById('new-q-text').value = '';
+    initAnswerBuilder();
+    toast('❓ Question created!', 'success');
+  } catch(e) {
+    toast('Error creating question.', 'error');
+    console.error(e);
+  }
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function checkAdmin() {
+  const pwd = document.getElementById('admin-password').value;
+  if (pwd === ADMIN_PASSWORD) {
+    adminUnlocked = true;
+    document.getElementById('admin-gate').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    renderAdminContent();
+  } else {
+    toast('Incorrect password.', 'error');
+    document.getElementById('admin-password').value = '';
+  }
+}
+
+async function renderAdminContent() {
+  await loadAllAdmin();
+
+  const totalArchetypes = cache.archetypes.length;
+  const hiddenArchetypes = cache.archetypes.filter(a => a.is_hidden).length;
+  const totalQuestions = cache.questions.length;
+  const hiddenQuestions = cache.questions.filter(q => q.is_hidden).length;
+
+  document.getElementById('admin-stats').innerHTML = `
+    <div class="stat-box"><div class="stat-num">${totalArchetypes}</div><div class="stat-label">Archetypes</div></div>
+    <div class="stat-box"><div class="stat-num">${hiddenArchetypes}</div><div class="stat-label">Hidden</div></div>
+    <div class="stat-box"><div class="stat-num">${totalQuestions}</div><div class="stat-label">Questions</div></div>
+    <div class="stat-box"><div class="stat-num">${hiddenQuestions}</div><div class="stat-label">Hidden</div></div>`;
+
+  renderAdminArchetypes();
+  renderAdminQuestions();
+}
+
+function renderAdminArchetypes() {
+  const list = document.getElementById('admin-archetypes-list');
+  list.innerHTML = cache.archetypes.map(a => `
+    <div class="browse-item ${a.is_hidden ? 'hidden-item' : ''} fade-in">
+      <div style="flex:1">
+        <div class="browse-item-name">${escHtml(a.name)} ${a.is_hidden ? '<span class="hidden-badge">HIDDEN</span>' : ''}</div>
+        <div class="browse-item-desc">${escHtml(a.description)}</div>
+        <div class="browse-tags">${a.tags.map(t => `<span class="browse-tag">${escHtml(t)}</span>`).join('')}</div>
+      </div>
+      <div class="browse-actions">
+        <button class="btn ${a.is_hidden ? 'btn-blue' : 'btn-danger'} btn-sm"
+          onclick="toggleHidden('archetypes', '${a.id}', ${a.is_hidden})">
+          ${a.is_hidden ? '⊕ Unhide' : '⊘ Hide'}
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function renderAdminQuestions() {
+  const list = document.getElementById('admin-questions-list');
+  list.innerHTML = cache.questions.map(q => `
+    <div class="browse-item ${q.is_hidden ? 'hidden-item' : ''} fade-in">
+      <div style="flex:1">
+        <div class="browse-question-text">"${escHtml(q.text)}"</div>
+        <div class="browse-question-meta">${q.type.toUpperCase()} ${q.is_hidden ? '· <span class="hidden-badge">HIDDEN</span>' : ''}</div>
+      </div>
+      <div class="browse-actions">
+        <button class="btn ${q.is_hidden ? 'btn-blue' : 'btn-danger'} btn-sm"
+          onclick="toggleHidden('questions', '${q.id}', ${q.is_hidden})">
+          ${q.is_hidden ? '⊕ Unhide' : '⊘ Hide'}
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleHidden(table, id, currentlyHidden) {
+  try {
+    await sb.update(table, id, { is_hidden: !currentlyHidden });
+    const item = cache[table].find(i => i.id === id);
+    if (item) item.is_hidden = !currentlyHidden;
+    toast(`${currentlyHidden ? 'Shown' : 'Hidden'}.`, 'success');
+    renderAdminArchetypes();
+    renderAdminQuestions();
+  } catch(e) {
+    toast('Error updating.', 'error');
+    console.error(e);
+  }
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportState() {
+  const json = JSON.stringify(userState, null, 2);
+  document.getElementById('export-text').textContent = json;
+  document.getElementById('export-output').style.display = 'block';
+}
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById('export-text').textContent);
+  toast('Copied!', 'success');
+}
+function importState(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (parsed.answered_questions) {
+        userState = parsed;
+        saveState();
+        toast('State imported!', 'success');
+      } else {
+        toast('Invalid state file.', 'error');
+      }
+    } catch {
+      toast('Could not parse file.', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ============================================================
+// SEED DATA
+// ============================================================
+async function seedIfEmpty() {
+  if (cache.archetypes.length > 0) return;
+
+  toast('Seeding starter content...', 'success');
+
+  const archetypeData = [
+    // POTTERMORE
+    { name: 'GRYFFINDOR', description: 'Brave, daring, chivalrous, and nerve. Values courage above all.', tags: ['POTTERMORE', 'WIZARDING'] },
+    { name: 'SLYTHERIN', description: 'Ambitious, cunning, resourceful, and determined. Values achievement and self-preservation.', tags: ['POTTERMORE', 'WIZARDING'] },
+    { name: 'RAVENCLAW', description: 'Intellectual, wise, creative, and learned. Values knowledge above all.', tags: ['POTTERMORE', 'WIZARDING'] },
+    { name: 'HUFFLEPUFF', description: 'Loyal, patient, fair, and hard-working. Values dedication and justice.', tags: ['POTTERMORE', 'WIZARDING'] },
+    // W40K
+    { name: 'SPACE MARINES', description: 'Genetically enhanced transhuman warriors, the Emperor\'s finest. Duty, honor, sacrifice.', tags: ['W40K', 'IMPERIUM'] },
+    { name: 'ORKS', description: 'Brutal, fungal, and WAAAGH!-driven. They live for the fight.', tags: ['W40K', 'XENOS'] },
+    { name: 'ELDAR', description: 'Ancient, graceful, doomed. They walk the paths of a dying civilization.', tags: ['W40K', 'XENOS'] },
+    { name: 'CHAOS SPACE MARINES', description: 'Fallen warriors who embrace the dark gifts of the Chaos Gods.', tags: ['W40K', 'CHAOS'] },
+    { name: 'NECRONS', description: 'Ancient robotic undead who slept for sixty million years. Cold, calculating, eternal.', tags: ['W40K', 'XENOS'] },
+    { name: 'TAU', description: 'Young, optimistic, technologically innovative. They believe in the Greater Good.', tags: ['W40K', 'XENOS'] },
+    { name: 'TYRANIDS', description: 'The Great Devourer. A swarm of alien hunger consuming all biomass in the galaxy.', tags: ['W40K', 'XENOS'] },
+    // KINGKILLER CHRONICLES
+    { name: 'NAMER', description: 'One who knows the true names of things and bends the world through that knowing.', tags: ['KINGKILLER', 'ARCANUM'] },
+    { name: 'SYMPATHIST', description: 'Masters of the Alar and the laws of sympathy. Logical, disciplined, precise.', tags: ['KINGKILLER', 'ARCANUM'] },
+    { name: 'ARTIFICER', description: 'Crafters of wonders, inscribers of runes, makers of things that last.', tags: ['KINGKILLER', 'ARCANUM'] },
+    { name: 'ALCHEMIST', description: 'Workers with substances and transmutations, ever-curious about matter\'s secrets.', tags: ['KINGKILLER', 'ARCANUM'] },
+    { name: 'CHANDRIAN', description: 'Ancient, cursed, and beyond mortal comprehension. Destroyers of stories.', tags: ['KINGKILLER'] },
+    // FRIENDS
+    { name: 'RACHEL', description: 'Fashion-forward, self-made, charming, and growing into herself.', tags: ['FRIENDS', 'SITCOM'] },
+    { name: 'MONICA', description: 'Competitive, nurturing, perfectionistic chef. She needs to win. She will feed you.', tags: ['FRIENDS', 'SITCOM'] },
+    { name: 'PHOEBE', description: 'Eccentric, spiritual, unapologetically weird, and deeply kind.', tags: ['FRIENDS', 'SITCOM'] },
+    { name: 'ROSS', description: 'Intellectual, paleontologist, romantically catastrophic, deeply earnest.', tags: ['FRIENDS', 'SITCOM'] },
+    { name: 'CHANDLER', description: 'Sarcastic defense mechanisms all the way down. But loyal to his core.', tags: ['FRIENDS', 'SITCOM'] },
+    { name: 'JOEY', description: 'Simple, warm, actor, sandwich-obsessed, and genuinely pure of heart.', tags: ['FRIENDS', 'SITCOM'] },
+    // SEX AND THE CITY
+    { name: 'CARRIE', description: 'The romantic writer. Perpetually in love with love, chaos, and good shoes.', tags: ['SATC', 'SITCOM'] },
+    { name: 'SAMANTHA', description: 'Unapologetically sexual, powerful, and takes no nonsense from anyone.', tags: ['SATC', 'SITCOM'] },
+    { name: 'CHARLOTTE', description: 'Idealistic, traditional, deeply hopeful about the world\'s goodness.', tags: ['SATC', 'SITCOM'] },
+    { name: 'MIRANDA', description: 'Pragmatic, career-driven, skeptical of romance but fiercely loyal.', tags: ['SATC', 'SITCOM'] },
+    // MISTBORN
+    { name: 'MISTBORN', description: 'Burns all metals. Rare, powerful, destined for greatness and suffering.', tags: ['MISTBORN', 'SCADRIAL'] },
+    { name: 'COINSHOT', description: 'Pushes metals with steel. Fast, aggressive, decisive. Bullets are too slow for them.', tags: ['MISTBORN', 'SCADRIAL'] },
+    { name: 'LURCHER', description: 'Pulls metals with iron. Grounded, gravitational, uses force to draw things close.', tags: ['MISTBORN', 'SCADRIAL'] },
+    { name: 'THUG', description: 'Burns pewter for strength and endurance. Relentless. Takes a hit and walks it off.', tags: ['MISTBORN', 'SCADRIAL'] },
+    { name: 'TINEYE', description: 'Heightened senses. Sees what others miss, hears the whispered plot in the corner.', tags: ['MISTBORN', 'SCADRIAL'] },
+    { name: 'SOOTHER', description: 'Dampens emotions. The calm in the storm, the manipulator in silk gloves.', tags: ['MISTBORN', 'SCADRIAL'] },
+    { name: 'RIOTER', description: 'Inflames emotions. Turns up the heat, makes the crowd feel what they need to feel.', tags: ['MISTBORN', 'SCADRIAL'] },
+    // SIMS 2 EXPANSIONS
+    { name: 'UNIVERSITY', description: 'Knowledge-hungry, socially complex, perpetually pulling all-nighters for a reason.', tags: ['SIMS2', 'EXPANSION'] },
+    { name: 'NIGHTLIFE', description: 'Lives for going out, romance, the perfect date, and downtown chaos.', tags: ['SIMS2', 'EXPANSION'] },
+    { name: 'OPEN FOR BUSINESS', description: 'Entrepreneurial, commerce-driven, perpetually building something.', tags: ['SIMS2', 'EXPANSION'] },
+    { name: 'PETS', description: 'Animal-brained in the best way. Loyalties run deep, fur is a love language.', tags: ['SIMS2', 'EXPANSION'] },
+    { name: 'SEASONS', description: 'Deeply attuned to cycles, nature, the turn of the year. Patient with change.', tags: ['SIMS2', 'EXPANSION'] },
+    { name: 'BON VOYAGE', description: 'Wanderlust made flesh. Adventure, new cultures, the next horizon.', tags: ['SIMS2', 'EXPANSION'] },
+    { name: 'FREE TIME', description: 'Hobbies, passion projects, the cultivation of personal joy. You do it for fun.', tags: ['SIMS2', 'EXPANSION'] },
+    { name: 'APARTMENT LIFE', description: 'Community-minded, social-networked, thrives in proximity to neighbors.', tags: ['SIMS2', 'EXPANSION'] },
+    // FIGHTER JET HARDWARE
+    { name: 'GAU-8 AVENGER', description: '30mm hydraulically-driven seven-barrel Gatling cannon. The reason the A-10 Thunderbolt II exists. It fires depleted uranium rounds at 4,200 rounds per minute. The plane was built around the gun.', tags: ['AIRCRAFT', 'WEAPON', 'A10'] },
+    { name: 'AIM-120 AMRAAM', description: 'Advanced Medium-Range Air-to-Air Missile. Fire and forget. Active radar seeker. The standard beyond-visual-range weapon of NATO air forces.', tags: ['AIRCRAFT', 'WEAPON', 'MISSILE'] },
+    { name: 'AGM-65 MAVERICK', description: 'Air-to-ground tactical missile. Multiple guidance variants. The workhorse of close air support.', tags: ['AIRCRAFT', 'WEAPON', 'MISSILE'] },
+    { name: 'MISSILE GUIDANCE SYSTEM', description: 'The brain behind the ordnance. Inertial, radar, infrared, GPS, laser — the system that makes precision possible.', tags: ['AIRCRAFT', 'AVIONICS', 'MISSILE'] },
+    { name: 'RADAR ALTIMETER', description: 'Measures exact height above terrain. Low-level flying made survivable. The difference between nap-of-earth and a crater.', tags: ['AIRCRAFT', 'AVIONICS'] },
+    { name: 'AN/APG-77 RADAR', description: 'Active electronically scanned array radar on the F-22 Raptor. Sees everything. Emits almost nothing detectable.', tags: ['AIRCRAFT', 'AVIONICS'] },
+    // LOCKED TOMB
+    { name: 'FIRST HOUSE', description: 'The Ninth House. Keepers of the tomb. Bone magic. Devotion, isolation, secrets buried for ten thousand years.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+    { name: 'SECOND HOUSE', description: 'The Second House. Military, discipline, honor. The sword arm of the Necrolord Supreme.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+    { name: 'THIRD HOUSE', description: 'The Third House. Politics, intrigue, and the art of seeming. A smile with teeth.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+    { name: 'FOURTH HOUSE', description: 'The Fourth House. Memory, history, and the archive of all that was.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+    { name: 'FIFTH HOUSE', description: 'The Fifth House. Art, love, passion, and the belief that beauty is worth dying for.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+    { name: 'SIXTH HOUSE', description: 'The Sixth House. Medicine, flesh, the repair and maintenance of the body. Clinical excellence.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+    { name: 'SEVENTH HOUSE', description: 'The Seventh House. Diplomacy, appearance, the management of how you are perceived.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+    { name: 'EIGHTH HOUSE', description: 'The Eighth House. Death magic, old power, entropy made manifest. They do not fear the end.', tags: ['LOCKED_TOMB', 'HOUSE'] },
+  ];
+
+  let archFailed = 0;
+  for (const a of archetypeData) {
+    try {
+      const result = await sb.insert('archetypes', { ...a, is_hidden: false });
+      cache.archetypes.push(result[0]);
+    } catch(e) {
+      archFailed++;
+      if (archFailed === 1) console.error('Archetype insert failed (first error):', e.message || e);
+    }
+  }
+  if (archFailed > 0) {
+    toast('DB error: ' + archFailed + ' archetypes failed. Check console + run SQL schema in Supabase.', 'error');
+    console.error('Total archetype failures:', archFailed, '— Have you run the SQL schema in Supabase yet?');
+    return;
+  }
+  cache.archetypes.sort((a, b) => a.name.localeCompare(b.name));
+
+  // Seed some starter questions
+  const questionData = [
+    {
+      text: "Your enemy is defeated and at your mercy. What do you do?",
+      type: "single",
+      answers: [
+        { text: "Spare them. Cruelty to the fallen is beneath me.", effects: [{ name: 'GRYFFINDOR', pts: 2 }, { name: 'HUFFLEPUFF', pts: 1 }, { name: 'SPACE MARINES', pts: 1 }] },
+        { text: "Finish them. Leaving threats alive is foolish.", effects: [{ name: 'SLYTHERIN', pts: 2 }, { name: 'CHAOS SPACE MARINES', pts: 1 }, { name: 'NECRONS', pts: 1 }] },
+        { text: "Extract information first, then decide.", effects: [{ name: 'SLYTHERIN', pts: 1 }, { name: 'TINEYE', pts: 2 }, { name: 'SOOTHER', pts: 1 }] },
+        { text: "Let fate decide. I flip a coin.", effects: [{ name: 'PHOEBE', pts: 2 }, { name: 'CHANDRIAN', pts: 1 }] }
+      ]
+    },
+    {
+      text: "What do you reach for first thing in the morning?",
+      type: "single",
+      answers: [
+        { text: "Coffee. Strong. Immediately.", effects: [{ name: 'MIRANDA', pts: 2 }, { name: 'MONICA', pts: 1 }] },
+        { text: "A book or journal.", effects: [{ name: 'RAVENCLAW', pts: 2 }, { name: 'CARRIE', pts: 1 }, { name: 'FOURTH HOUSE', pts: 1 }] },
+        { text: "My phone.", effects: [{ name: 'RACHEL', pts: 1 }, { name: 'NIGHTLIFE', pts: 1 }] },
+        { text: "The snooze button. Multiple times.", effects: [{ name: 'JOEY', pts: 2 }, { name: 'FREE TIME', pts: 1 }] },
+        { text: "I was already awake, running drills.", effects: [{ name: 'SPACE MARINES', pts: 2 }, { name: 'THUG', pts: 1 }, { name: 'SECOND HOUSE', pts: 1 }] }
+      ]
+    },
+    {
+      text: "You discover a hidden library containing forbidden knowledge. What do you do?",
+      type: "single",
+      answers: [
+        { text: "Read everything immediately.", effects: [{ name: 'RAVENCLAW', pts: 2 }, { name: 'NAMER', pts: 2 }, { name: 'UNIVERSITY', pts: 1 }] },
+        { text: "Read it, but carefully and selectively.", effects: [{ name: 'SYMPATHIST', pts: 2 }, { name: 'SLYTHERIN', pts: 1 }] },
+        { text: "Report it to the proper authorities.", effects: [{ name: 'HUFFLEPUFF', pts: 1 }, { name: 'SPACE MARINES', pts: 1 }] },
+        { text: "Catalog it for later. Knowledge is power.", effects: [{ name: 'ARTIFICER', pts: 2 }, { name: 'FOURTH HOUSE', pts: 2 }] },
+        { text: "Destroy it. Some things should stay hidden.", effects: [{ name: 'EIGHTH HOUSE', pts: 2 }, { name: 'CHANDRIAN', pts: 1 }] }
+      ]
+    },
+    {
+      text: "At a party, you are most likely to be found:",
+      type: "single",
+      answers: [
+        { text: "Holding court in the center of the room.", effects: [{ name: 'SAMANTHA', pts: 2 }, { name: 'RIOTER', pts: 1 }, { name: 'NIGHTLIFE', pts: 1 }] },
+        { text: "In the kitchen, making food for everyone.", effects: [{ name: 'MONICA', pts: 2 }, { name: 'HUFFLEPUFF', pts: 1 }] },
+        { text: "Having one really intense conversation in a corner.", effects: [{ name: 'ROSS', pts: 1 }, { name: 'MIRANDA', pts: 1 }, { name: 'SIXTH HOUSE', pts: 1 }] },
+        { text: "Already planning the exit.", effects: [{ name: 'NECRONS', pts: 1 }, { name: 'TINEYE', pts: 1 }] },
+        { text: "On the dance floor. Obviously.", effects: [{ name: 'GRYFFINDOR', pts: 1 }, { name: 'JOEY', pts: 1 }, { name: 'FIFTH HOUSE', pts: 2 }] }
+      ]
+    },
+    {
+      text: "Which of these problems would you rather solve?",
+      type: "single",
+      answers: [
+        { text: "A strategic military problem with lives at stake.", effects: [{ name: 'SPACE MARINES', pts: 2 }, { name: 'MISSILE GUIDANCE SYSTEM', pts: 1 }, { name: 'SECOND HOUSE', pts: 2 }] },
+        { text: "A philosophical problem with no clear answer.", effects: [{ name: 'RAVENCLAW', pts: 1 }, { name: 'NAMER', pts: 1 }, { name: 'ROSS', pts: 2 }] },
+        { text: "A business problem with profit at stake.", effects: [{ name: 'SLYTHERIN', pts: 1 }, { name: 'OPEN FOR BUSINESS', pts: 2 }] },
+        { text: "An interpersonal problem between people I care about.", effects: [{ name: 'COUNSELOR', pts: 0 }, { name: 'SOOTHER', pts: 2 }, { name: 'HUFFLEPUFF', pts: 1 }] },
+        { text: "A technical problem that needs precision and patience.", effects: [{ name: 'SYMPATHIST', pts: 2 }, { name: 'ARTIFICER', pts: 1 }, { name: 'AGM-65 MAVERICK', pts: 1 }] }
+      ]
+    },
+    {
+      text: "What do you value most in a friend?",
+      type: "multi",
+      answers: [
+        { text: "Loyalty — they'd never betray me.", effects: [{ name: 'HUFFLEPUFF', pts: 2 }, { name: 'CHANDLER', pts: 1 }] },
+        { text: "Honesty — they tell me the hard truth.", effects: [{ name: 'GRYFFINDOR', pts: 1 }, { name: 'MIRANDA', pts: 2 }] },
+        { text: "Intelligence — we can talk about anything.", effects: [{ name: 'RAVENCLAW', pts: 2 }, { name: 'ROSS', pts: 1 }] },
+        { text: "Fun — they make everything an adventure.", effects: [{ name: 'JOEY', pts: 2 }, { name: 'PHOEBE', pts: 1 }, { name: 'BON VOYAGE', pts: 1 }] },
+        { text: "Competence — they get things done.", effects: [{ name: 'SLYTHERIN', pts: 1 }, { name: 'SPACE MARINES', pts: 1 }] }
+      ]
+    },
+    {
+      text: "You are given a weapon. What matters most to you about it?",
+      type: "single",
+      answers: [
+        { text: "Its stopping power and range.", effects: [{ name: 'GAU-8 AVENGER', pts: 2 }, { name: 'AIM-120 AMRAAM', pts: 1 }] },
+        { text: "Its precision and accuracy.", effects: [{ name: 'MISSILE GUIDANCE SYSTEM', pts: 2 }, { name: 'AGM-65 MAVERICK', pts: 2 }, { name: 'TINEYE', pts: 1 }] },
+        { text: "That I never have to use it.", effects: [{ name: 'HUFFLEPUFF', pts: 2 }, { name: 'CHARLOTTE', pts: 1 }] },
+        { text: "The symbolism. What it represents.", effects: [{ name: 'GRYFFINDOR', pts: 1 }, { name: 'FIFTH HOUSE', pts: 2 }] },
+        { text: "That it was made to last.", effects: [{ name: 'ARTIFICER', pts: 2 }, { name: 'NECRONS', pts: 1 }] }
+      ]
+    },
+    {
+      text: "Your city is under attack. What is your role?",
+      type: "single",
+      answers: [
+        { text: "On the front line, fighting.", effects: [{ name: 'GRYFFINDOR', pts: 2 }, { name: 'SPACE MARINES', pts: 2 }, { name: 'THUG', pts: 1 }] },
+        { text: "Coordinating the defense from a tactical overview.", effects: [{ name: 'MISSILE GUIDANCE SYSTEM', pts: 1 }, { name: 'SLYTHERIN', pts: 1 }, { name: 'AN/APG-77 RADAR', pts: 2 }] },
+        { text: "Evacuating civilians and providing support.", effects: [{ name: 'HUFFLEPUFF', pts: 2 }, { name: 'SIXTH HOUSE', pts: 2 }] },
+        { text: "Gathering intelligence on the enemy.", effects: [{ name: 'TINEYE', pts: 2 }, { name: 'THIRD HOUSE', pts: 1 }] },
+        { text: "Asking why this is happening and who sent them.", effects: [{ name: 'RAVENCLAW', pts: 1 }, { name: 'NAMER', pts: 1 }, { name: 'CARRIE', pts: 1 }] }
+      ]
+    }
+  ];
+
+  const archNameMap = Object.fromEntries(cache.archetypes.map(a => [a.name, a.id]));
+
+  let qFailed = 0;
+  for (const qd of questionData) {
+    try {
+      const [qResult] = await sb.insert('questions', { text: qd.text, type: qd.type, is_hidden: false });
+      const qId = qResult.id;
+      cache.questions.push(qResult);
+
+      for (const ad of qd.answers) {
+        const [aResult] = await sb.insert('answers', { question_id: qId, text: ad.text });
+        const aId = aResult.id;
+        cache.answers.push({ id: aId, question_id: qId, text: ad.text });
+
+        for (const ef of ad.effects) {
+          const archId = archNameMap[ef.name];
+          if (!archId || ef.pts === 0) continue;
+          try {
+            await sb.insert('effects', { answer_id: aId, archetype_id: archId, points: ef.pts });
+            cache.effects.push({ answer_id: aId, archetype_id: archId, points: ef.pts });
+          } catch(e) { /* skip */ }
+        }
+      }
+    } catch(e) { qFailed++; console.error('Question insert failed:', e.message || e); }
+  }
+
+  if (qFailed > 0) console.warn(qFailed + ' questions failed to seed.');
+  toast('Content seeded! Ready to quiz.', 'success');
+  loadQuizQuestion();
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  // starfield disabled
+  loadState();
+  await loadAll();
+  await seedIfEmpty();
+  loadQuizQuestion();
+}
+
+init();
+</script>
+</body>
+</html>
