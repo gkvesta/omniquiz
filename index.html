@@ -1601,7 +1601,7 @@ function addAnswerBuilder() {
     <div class="form-label" style="margin-bottom:8px">Archetype Effects <span style="color:var(--text-dim); font-weight:normal">(optional)</span></div>
     <div id="effects-${n}"></div>
     <button class="btn btn-dim btn-sm" onclick="addEffect(${n})">+ Add Effect</button>
-    <div class="form-hint" style="margin-top:6px">Effects link this answer to archetypes with +2 to -2 point modifiers.</div>`;
+    <div class="form-hint" style="margin-top:6px">Effects link this answer to archetypes with +3 to -3 point modifiers.</div>`;
 
   document.getElementById('answers-builder').appendChild(div);
 }
@@ -1619,7 +1619,7 @@ function addEffect(answerNum) {
       <option value="">— Select Archetype —</option>
       ${archetypeOptions}
     </select>
-    <input type="number" class="points-input" min="-2" max="2" value="1" title="Points (-2 to +2)">
+    <input type="number" class="points-input" min="-3" max="3" value="1" title="Points (-3 to +3)">
     <button class="btn btn-danger btn-sm" onclick="this.closest('.effect-row').remove()">✕</button>`;
 
   document.getElementById(`effects-${answerNum}`).appendChild(row);
@@ -1680,7 +1680,7 @@ async function submitQuestion() {
       if (!sel.value) return;
       if (seenArchetypes.has(sel.value)) { toast('Duplicate archetype in one answer.', 'error'); valid = false; return; }
       const pts_val = parseInt(pts.value);
-      if (pts_val < -2 || pts_val > 2) { toast('Points must be -2 to +2.', 'error'); valid = false; return; }
+      if (pts_val < -3 || pts_val > 3) { toast('Points must be -3 to +3.', 'error'); valid = false; return; }
       seenArchetypes.add(sel.value);
       effects.push({ archetype_id: sel.value, points: pts_val });
     });
